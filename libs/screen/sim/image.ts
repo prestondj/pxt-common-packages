@@ -1,4 +1,14 @@
 namespace pxsim {
+    export interface EncodedImage extends EncodedObject {
+        type: "RefImage";
+        width: number;
+        height: number;
+        bpp: number;
+        isStatic: boolean;
+        revision: number;
+        data: number[]; // serialised Uint8 array as a standard array
+    }
+
     export class RefImage extends RefObject {
         _width: number;
         _height: number;
@@ -57,6 +67,32 @@ namespace pxsim {
         toDebugString() {
             return this._width + "x" + this._height
         }
+
+        public encode(snapshotID: number, encodeValue: (v: any) => EncodedValue): EncodedImage{
+            return {
+                id: snapshotID,
+                type: "RefImage",
+                width: this._width,
+                height: this._height,
+                bpp: this._bpp,
+                isStatic: this.isStatic,
+                revision: this.revision,
+                data: Array.from(this.data) // convert uint8 array to standard number[]
+            }
+        }
+
+        public decode(dto: EncodedObject, resolveRef: (id: number) => any): void{
+            const imageDto = dto as EncodedImage;
+
+            this._width = imageDto.width;
+            this._height = imageDto.height;
+            this._bpp = imageDto.bpp;
+            this.isStatic = imageDto.isStatic;
+            this.revision = imageDto.revision;
+
+            this.data = new Uint8Array(imageDto.data);
+        }
+
     }
 }
 
